@@ -1,0 +1,736 @@
+{
+  "name": "Company Research with Email only",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "hour": 8,
+              "minute": 30
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4",
+          "mode": "list",
+          "cachedResultName": "Company research with email only",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "93b06f9a-9d9a-4fe0-b52b-13f33f54b3b8",
+      "name": "Google Sheets Trigger",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "L2wavzDMKOvqZC1D",
+          "name": "Google Sheets Trigger account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "a836db2b-4aa2-4478-9709-3791a56fe622",
+              "leftValue": "={{ $json.should_research }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        432,
+        -16
+      ],
+      "id": "2ab881dc-1235-4432-a8e1-473834648cd0",
+      "name": "Is Business Email?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ccb4b6a1-ecf9-4a91-88fe-6dbaf6c619bd",
+              "name": "email ",
+              "value": "={{ $('Google Sheets Trigger').item.json['email '] }}",
+              "type": "string"
+            },
+            {
+              "id": "8f5382b7-befc-4082-a880-853bab10186e",
+              "name": "Status",
+              "value": "={{ $('Google Sheets Trigger').item.json.Status }}",
+              "type": "string"
+            },
+            {
+              "id": "358b39d4-626d-4a47-9d92-bffb2993236b",
+              "name": "Domain",
+              "value": "={{ $('Google Sheets Trigger').item.json.Domain }}",
+              "type": "string"
+            },
+            {
+              "id": "dceeb2ca-d6c2-4a17-9487-08f0a4905ae2",
+              "name": "Last Checked",
+              "value": "={{ $('Google Sheets Trigger').item.json['Last Checked'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        112
+      ],
+      "id": "db012081-930b-4fca-8cb7-4c9414adf657",
+      "name": "Mark as Skipped"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.website_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-company-research/1.0)"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 5
+            }
+          },
+          "redirect": {
+            "redirect": {}
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text",
+              "outputPropertyName": "html"
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        688,
+        -160
+      ],
+      "id": "09f0f6c1-fd18-45f8-9a32-548c88dedc0e",
+      "name": "Fetch Website",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "html",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "page_title",
+              "cssSelector": "title"
+            },
+            {
+              "key": "og_site_name",
+              "cssSelector": "meta[property='og:site_name']",
+              "returnValue": "attribute",
+              "attribute": "content"
+            },
+            {
+              "key": "meta_description",
+              "cssSelector": "meta[name='description']",
+              "returnValue": "attribute",
+              "attribute": "content"
+            },
+            {
+              "key": "og_description",
+              "cssSelector": "meta[property='og:description']",
+              "returnValue": "attribute",
+              "attribute": "content"
+            },
+            {
+              "key": "linkedin_url",
+              "cssSelector": "a[href*='linkedin.com/company']",
+              "returnValue": "attribute",
+              "attribute": "content"
+            }
+          ]
+        },
+        "options": {
+          "trimValues": true
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -160
+      ],
+      "id": "609401c1-0f6e-4658-bc6e-a06d1c72b476",
+      "name": "Extract Company Info",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Original row data, matched to this item by n8n's item pairing\nconst src = $('Extract Domain').item.json;\nconst page = $json;\n\nconst clean = (v) => String(v ?? '').replace(/\\s+/g, ' ').trim();\n\n// Company name: prefer og:site_name, else the first part of <title>\n// (split only on separators with spaces, so \"Coca-Cola\" stays whole)\nlet companyName = clean(page.og_site_name);\nif (!companyName && page.page_title) {\n  companyName = clean(String(page.page_title).split(/\\s[|\\-–—:]\\s/)[0]);\n}\n\nconst description = clean(page.meta_description || page.og_description).slice(0, 300);\nconst found = Boolean(companyName || description);\n\nreturn {\n  json: {\n    Email: src.Email,\n    Domain: src.Domain,\n    'Company Name': companyName,\n    Website: src.website_url,\n    Description: description,\n    LinkedIn: clean(page.linkedin_url),\n    Logo: `https://www.google.com/s2/favicons?domain=${src.Domain}&sz=128`,\n    Status: found ? 'Enriched' : 'Website not reachable',\n    'Last Checked': new Date().toISOString(),\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "659c4440-4ed3-41a0-8cb1-16506af0d3d3",
+      "name": "Build Sheet Row",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4",
+          "mode": "list",
+          "cachedResultName": "Company research with email only",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uizp2-V2c52_kKXGee0Ks3YiD54aGS9OqUTIRrzEvt4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company summary",
+              "displayName": "Company summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Linkedin",
+              "displayName": "Linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Logo",
+              "displayName": "Logo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Checked",
+              "displayName": "Last Checked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LinkedIn",
+              "displayName": "LinkedIn",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1360,
+        -96
+      ],
+      "id": "b190ec1c-ab82-487a-9b72-fd8381800824",
+      "name": "Update Lead Row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tEqKqoE6HVfpaiOz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Personal email providers: there is no company to research\nconst FREE_PROVIDERS = new Set([\n  'gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.co.uk', 'ymail.com',\n  'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'icloud.com', 'me.com',\n  'aol.com', 'proton.me', 'protonmail.com', 'zoho.com', 'gmx.com', 'mail.com', 'yandex.com'\n]);\n\n// Read a column no matter its capitals or extra spaces\n// ('email ', 'Email', ' EMAIL' all work)\nconst getField = (row, name) => {\n  const key = Object.keys(row).find(k => k.trim().toLowerCase() === name);\n  return key ? String(row[key] ?? '').trim() : '';\n};\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  // Skip rows a previous run already handled\n  if (getField(item.json, 'status')) continue;\n\n  const name = getField(item.json, 'name');\n  const email = getField(item.json, 'email');   // keep original for matching later\n  const lower = email.toLowerCase();\n\n  const isValid = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(lower);\n  const [username, domain] = isValid ? lower.split('@') : ['', ''];\n  const isPersonal = FREE_PROVIDERS.has(domain);\n\n  results.push({\n    json: {\n      Name: name,\n      Email: email,\n      username,\n      Domain: domain,\n      website_url: domain ? `https://${domain}` : '',\n      should_research: isValid && !isPersonal,\n      skip_reason: !isValid ? 'Invalid email'\n                 : isPersonal ? 'Personal email (no company)'\n                 : '',\n    },\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "5fcf966f-f258-41bd-af7f-98f589f70c87",
+      "name": "Extract Domain"
+    },
+    {
+      "parameters": {
+        "content": "## 3. Research\n",
+        "height": 80,
+        "width": 176,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -336
+      ],
+      "id": "a10ce9f8-1afa-4d52-a21c-8b9a53e631fb",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 4. Write back\n",
+        "height": 80,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -240
+      ],
+      "id": "5b9ae3a0-c796-4e89-a28b-c9a6842e99f5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Clean and validate\n",
+        "height": 80,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        176,
+        160
+      ],
+      "id": "d1fa325d-1ec0-4968-9e74-d026011baf35",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Read Leads\n",
+        "height": 80,
+        "width": 192,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        160
+      ],
+      "id": "701a30c8-2050-4a08-bbe9-729f5315e455",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "e3b8bb70-d72e-444c-875c-9c5f3231de52",
+              "leftValue": "={{ $json.Domain }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.4,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "1410d4a1-04f7-45fd-975f-d72af37be8ea",
+      "name": "Not ran before"
+    }
+  ],
+  "pinData": {
+    "Google Sheets Trigger": [
+      {
+        "json": {
+          "Name": "Joey Seeman",
+          "email ": "joey@novaecho.ai",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "Name": "Jonathan Sanchez",
+          "email ": "jonathan.sanchez@wpp.com",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "Name": "Luke Bolar",
+          "email ": "Luke.bolar@boeing.com",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "Name": "Jody Venturoni",
+          "email ": "jventuroni@carnival.com",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "Name": "Alison Rudnick",
+          "email ": "arudnick@nypost.com",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "Name": "Ginika Frank-Durugbor",
+          "email ": "inikanwa.frank-durugbor@lafargeholcim.com",
+          "Company summary": "",
+          "Domain": "",
+          "Website": "",
+          "Description": "",
+          "Linkedin": "",
+          "Logo": "",
+          "Status": "",
+          "Last Checked": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Not ran before",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Business Email?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Website",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark as Skipped",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Website": {
+      "main": [
+        [
+          {
+            "node": "Extract Company Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Company Info": {
+      "main": [
+        [
+          {
+            "node": "Build Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Row": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Skipped": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Domain": {
+      "main": [
+        [
+          {
+            "node": "Is Business Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not ran before": {
+      "main": [
+        [
+          {
+            "node": "Extract Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "4485d365-4f12-442b-88ef-fc79ad8add2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1cd84bfd68d3d2aac942185b412c23b05ce124135e3cfc74f6840cb93098d2c1"
+  },
+  "nodeGroups": [],
+  "id": "wGI6JeZ6JZTbf4mH",
+  "tags": []
+}
